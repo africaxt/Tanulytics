@@ -117,6 +117,13 @@ def run_crypto_arb() -> dict | None:
     return _run_broker("CryptoArb", _import)
 
 
+def run_bitmex() -> dict | None:
+    def _import():
+        from bitmex_fetch import main
+        return main
+    return _run_broker("BitMEX", _import)
+
+
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
 BROKERS = {
@@ -125,6 +132,7 @@ BROKERS = {
     "schwab":     run_schwab,
     "robinhood":  run_robinhood,
     "crypto_arb": run_crypto_arb,
+    "bitmex":     run_bitmex,
 }
 
 

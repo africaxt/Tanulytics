@@ -36,6 +36,7 @@ BROKER_STRATEGY = {
     "schwab":     "Global Macro",
     "robinhood":  "Value Investing",
     "crypto_arb": "Crypto Arbitrage",
+    "bitmex":     "Derivatives",
 }
 
 BROKER_CURRENCY = {
@@ -44,6 +45,7 @@ BROKER_CURRENCY = {
     "schwab":     "USD",
     "robinhood":  "USD",
     "crypto_arb": "USD",
+    "bitmex":     "BTC",
 }
 
 # IBKR secType → normalised asset class
@@ -298,6 +300,74 @@ def _norm_schwab_trades(trades: list) -> list:
     return out
 
 
+def _norm_bitmex_positions(positions: list, fetched_at: str) -> list:
+    out = []
+    for p in positions:
+        if "error" in p:
+            continue
+        out.append({
+            "symbol":         p.get("symbol"),
+            "broker":         "BitMEX",
+            "strategy":       "Derivatives",
+            "asset_class":    p.get("asset_class", "Futures"),
+            "direction":      p.get("direction", "Long"),
+            "quantity":       _safe_float(p.get("quantity")),
+            "entry_price":    _safe_float(p.get("entry_price")),
+            "current_price":  _safe_float(p.get("current_price")),
+            "market_value":   _safe_float(p.get("market_value")),
+            "unrealised_pnl": _safe_float(p.get("unrealised_pnl")),
+            "unrealised_pct": _safe_float(p.get("unrealised_pct")),
+            "cost_basis":     None,
+            "currency":       p.get("currency", "BTC"),
+            "open_date":      p.get("open_date"),
+            "account":        "BitMEX",
+            "last_synced":    fetched_at,
+        })
+    return out
+
+
+def _norm_bitmex_trades(trades: list) -> list:
+    out = []
+    for t in trades:
+        if "error" in t:
+            continue
+        out.append({
+            "trade_id":     t.get("trade_id", ""),
+            "broker":       "BitMEX",
+            "symbol":       t.get("symbol"),
+            "asset_class":  "Futures",
+            "side":         t.get("side", "Buy"),
+            "quantity":     _safe_float(t.get("quantity")),
+            "price":        _safe_float(t.get("price")),
+            "realised_pnl": _safe_float(t.get("realised_pnl")),
+            "commission":   _safe_float(t.get("commission")),
+            "currency":     t.get("currency", "BTC"),
+            "executed_at":  str(t.get("executed_at") or ""),
+            "account":      "BitMEX",
+        })
+    return out
+
+
+def _norm_bitmex_balance(broker_data: dict) -> list:
+    pnl = broker_data.get("pnl", {})
+    fa  = broker_data.get("fetched_at", _now_iso())
+    btc = _safe_float(pnl.get("btc_balance"))
+    usd = _safe_float(pnl.get("usd_equivalent"))
+    return [{
+        "broker":         "BitMEX",
+        "account":        "BitMEX",
+        "net_liq":        usd,
+        "cash":           btc,
+        "buying_power":   _safe_float(pnl.get("btc_available")),
+        "daily_pnl":      None,
+        "unrealised_pnl": _safe_float(pnl.get("unrealised_pnl")),
+        "realised_pnl":   None,
+        "equity":         usd,
+        "currency":       "BTC",
+        "as_of":          fa,
+    }]
+
+
 def _norm_crypto_arb_trades(trades: list) -> list:
     out = []
     for t in trades:
@@ -537,7 +607,8 @@ def aggregate(broker_data: dict) -> dict:
         "fxcm":       _norm_fxcm_positions,
         "schwab":     _norm_schwab_positions,
         "robinhood":  _norm_robinhood_positions,
-        "crypto_arb": lambda pos, fa: [],   # arb has no persistent positions
+        "crypto_arb": lambda pos, fa: [],
+        "bitmex":     _norm_bitmex_positions,
     }
     NORM_TRADES = {
         "ibkr":       _norm_ibkr_trades,
@@ -545,6 +616,7 @@ def aggregate(broker_data: dict) -> dict:
         "schwab":     _norm_schwab_trades,
         "robinhood":  _norm_robinhood_trades,
         "crypto_arb": _norm_crypto_arb_trades,
+        "bitmex":     _norm_bitmex_trades,
     }
     NORM_BALANCES = {
         "ibkr":       _norm_ibkr_balance,
@@ -552,6 +624,7 @@ def aggregate(broker_data: dict) -> dict:
         "schwab":     _norm_schwab_balance,
         "robinhood":  _norm_robinhood_balance,
         "crypto_arb": _norm_crypto_arb_balance,
+        "bitmex":     _norm_bitmex_balance,
     }
 
     for broker_key, data in broker_data.items():
