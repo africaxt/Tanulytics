@@ -110,19 +110,27 @@ def run_robinhood() -> dict | None:
     return _run_broker("Robinhood", _import)
 
 
+def run_crypto_arb() -> dict | None:
+    def _import():
+        from crypto_arb_fetch import main
+        return main
+    return _run_broker("CryptoArb", _import)
+
+
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
 BROKERS = {
-    "ibkr":      run_ibkr,
-    "fxcm":      run_fxcm,
-    "schwab":    run_schwab,
-    "robinhood": run_robinhood,
+    "ibkr":       run_ibkr,
+    "fxcm":       run_fxcm,
+    "schwab":     run_schwab,
+    "robinhood":  run_robinhood,
+    "crypto_arb": run_crypto_arb,
 }
 
 
 def main():
     parser = argparse.ArgumentParser(description="Tanulytics pipeline")
-    parser.add_argument("--broker",  choices=list(BROKERS.keys()), help="Run single broker only")
+    parser.add_argument("--broker",  choices=list(BROKERS.keys()), help="Run single broker only (e.g. crypto_arb)")
     parser.add_argument("--dry-run", action="store_true", help="Fetch only, skip push")
     parser.add_argument("--verbose", action="store_true", help="Print raw data")
     args = parser.parse_args()

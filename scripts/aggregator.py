@@ -31,17 +31,19 @@ from datetime import datetime, timezone
 # ── Strategy / Asset class lookups ─────────────────────────────────────────────
 
 BROKER_STRATEGY = {
-    "ibkr":      "Algorithmic",
-    "fxcm":      "Forex",
-    "schwab":    "Global Macro",
-    "robinhood": "Value Investing",
+    "ibkr":       "Algorithmic",
+    "fxcm":       "Forex",
+    "schwab":     "Global Macro",
+    "robinhood":  "Value Investing",
+    "crypto_arb": "Crypto Arbitrage",
 }
 
 BROKER_CURRENCY = {
-    "ibkr":      "USD",
-    "fxcm":      "USD",
-    "schwab":    "USD",
-    "robinhood": "USD",
+    "ibkr":       "USD",
+    "fxcm":       "USD",
+    "schwab":     "USD",
+    "robinhood":  "USD",
+    "crypto_arb": "USD",
 }
 
 # IBKR secType → normalised asset class
@@ -296,6 +298,27 @@ def _norm_schwab_trades(trades: list) -> list:
     return out
 
 
+def _norm_crypto_arb_trades(trades: list) -> list:
+    out = []
+    for t in trades:
+        out.append({
+            "trade_id":     t.get("trade_id") or _dedup_key(
+                "crypto_arb", t.get("symbol"), t.get("executed_at"), t.get("price")),
+            "broker":       "CryptoArb",
+            "symbol":       t.get("symbol", "BTC/USD"),
+            "asset_class":  "Crypto",
+            "side":         t.get("side", "Buy"),
+            "quantity":     _safe_float(t.get("quantity")),
+            "price":        _safe_float(t.get("price")),
+            "realised_pnl": _safe_float(t.get("realised_pnl")),
+            "commission":   None,
+            "currency":     "USD",
+            "executed_at":  str(t.get("executed_at") or ""),
+            "account":      t.get("account", "CryptoArb"),
+        })
+    return out
+
+
 def _norm_robinhood_trades(trades: list) -> list:
     out = []
     for t in trades:
@@ -361,6 +384,24 @@ def _norm_ibkr_balance(broker_data: dict) -> list:
             "as_of":          fa,
         })
     return rows
+
+
+def _norm_crypto_arb_balance(broker_data: dict) -> list:
+    pnl = broker_data.get("pnl", {})
+    fa  = broker_data.get("fetched_at", _now_iso())
+    return [{
+        "broker":         "CryptoArb",
+        "account":        "bitcoin-arbitrage",
+        "net_liq":        None,
+        "cash":           None,
+        "buying_power":   None,
+        "daily_pnl":      _safe_float(pnl.get("estimated_profit_period")),
+        "unrealised_pnl": None,
+        "realised_pnl":   _safe_float(pnl.get("estimated_profit_period")),
+        "equity":         None,
+        "currency":       "USD",
+        "as_of":          fa,
+    }]
 
 
 def _norm_fxcm_balance(broker_data: dict) -> list:
@@ -492,22 +533,25 @@ def aggregate(broker_data: dict) -> dict:
     balances  = []
 
     NORM_POSITIONS = {
-        "ibkr":      _norm_ibkr_positions,
-        "fxcm":      _norm_fxcm_positions,
-        "schwab":    _norm_schwab_positions,
-        "robinhood": _norm_robinhood_positions,
+        "ibkr":       _norm_ibkr_positions,
+        "fxcm":       _norm_fxcm_positions,
+        "schwab":     _norm_schwab_positions,
+        "robinhood":  _norm_robinhood_positions,
+        "crypto_arb": lambda pos, fa: [],   # arb has no persistent positions
     }
     NORM_TRADES = {
-        "ibkr":      _norm_ibkr_trades,
-        "fxcm":      _norm_fxcm_trades,
-        "schwab":    _norm_schwab_trades,
-        "robinhood": _norm_robinhood_trades,
+        "ibkr":       _norm_ibkr_trades,
+        "fxcm":       _norm_fxcm_trades,
+        "schwab":     _norm_schwab_trades,
+        "robinhood":  _norm_robinhood_trades,
+        "crypto_arb": _norm_crypto_arb_trades,
     }
     NORM_BALANCES = {
-        "ibkr":      _norm_ibkr_balance,
-        "fxcm":      _norm_fxcm_balance,
-        "schwab":    _norm_schwab_balance,
-        "robinhood": _norm_robinhood_balance,
+        "ibkr":       _norm_ibkr_balance,
+        "fxcm":       _norm_fxcm_balance,
+        "schwab":     _norm_schwab_balance,
+        "robinhood":  _norm_robinhood_balance,
+        "crypto_arb": _norm_crypto_arb_balance,
     }
 
     for broker_key, data in broker_data.items():
