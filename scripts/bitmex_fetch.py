@@ -15,9 +15,10 @@ Dependencies:
     pip install ccxt python-dotenv
 """
 
+from __future__ import annotations
+
 import json
 import os
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -27,11 +28,12 @@ try:
 except ImportError:
     pass
 
+# Soft import — if ccxt isn't installed, defer the error to main() so
+# run_all.py's per-broker wrapper can log it and continue with other brokers.
 try:
     import ccxt
 except ImportError:
-    print("ccxt not installed. Run: pip install ccxt")
-    sys.exit(1)
+    ccxt = None
 
 API_KEY    = os.getenv("BITMEX_API_KEY", "")
 API_SECRET = os.getenv("BITMEX_API_SECRET", "")
@@ -74,6 +76,24 @@ def _fetch_balance(exchange: ccxt.bitmex) -> dict:
 
 
 def main(return_data: bool = False):
+    # Soft-fail if ccxt itself isn't installed (e.g. fresh venv before
+    # requirements.txt has been pip-installed). Without this guard,
+    # run_all.py's `from bitmex_fetch import main` succeeds but the first
+    # call into ccxt.bitmex(...) below would AttributeError.
+    if ccxt is None:
+        result = {
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
+            "broker":     "BitMEX",
+            "positions":  [],
+            "trades":     [],
+            "pnl":        {},
+            "error":      "ccxt not installed — run: pip install ccxt",
+        }
+        if return_data:
+            return result
+        print(json.dumps(result, indent=2))
+        return None
+
     if not API_KEY or not API_SECRET:
         result = {
             "fetched_at": datetime.now(timezone.utc).isoformat(),

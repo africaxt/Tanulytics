@@ -45,7 +45,8 @@ def _load_events(since: datetime) -> list:
             try:
                 ev = json.loads(line)
                 ts_str = ev.get("received_at", "")
-                ts = datetime.fromisoformat(ts_str)
+                # Python 3.10 fromisoformat rejects 'Z' suffix — normalise to +00:00.
+                ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
                 if ts >= since:
                     events.append(ev)
             except (json.JSONDecodeError, ValueError):
