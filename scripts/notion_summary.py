@@ -3,16 +3,25 @@ notion_summary.py
 ─────────────────
 Tanulytics Portfolio Aggregator — Notion Module
 
-Pushes the daily portfolio summary to two Notion pages:
+Pushes the daily portfolio summary to two Notion destinations:
 
-  1. Portfolio page (a0124ec5-d4f1-48c0-ad65-e145efc8b519)
-     → Appends a daily snapshot callout block with P&L numbers,
-       position count, and broker sync status.
+  1. Portfolio page  (NOTION_PORTFOLIO_PAGE_ID in config/.env)
+     Appends a dated callout block with P&L, position count, and broker
+     breakdown.  This is the investor-reportable / external view.
 
-  2. Mindset Stack (35ec9f23-0499-81f8-b62c-c70de010364c)
-     → Searches for today's Daily Review entry and adds a "Market Context"
-       paragraph with the day's key P&L number and position summary.
-       Creates the daily entry if it doesn't exist yet.
+  2. Daily Review database  (NOTION_DAILY_REVIEW_DB_ID in config/.env)
+     Finds today's entry and appends a "Market Context" paragraph so it
+     is ready for the morning "Good morning, check-in" Claude session.
+     If no entry exists yet, creates one.
+     Does NOT fall back to the Mindset Stack root (that page is for
+     habits, not market data).
+
+System of record
+────────────────
+  Airtable          Full structured data — positions, trades, balances
+  Notion Portfolio  Daily P&L callout block (external/reporting layer)
+  Notion DailyRev   One-line market context for morning check-in
+  Obsidian journal  Headline metrics + YAML frontmatter + reflections
 
 Requirements:
   pip install notion-client python-dotenv
@@ -22,7 +31,7 @@ Setup:
   2. Create a new integration named "Tanulytics"
   3. Copy the Integration Token → add to config/.env as NOTION_API_KEY
   4. Open your Portfolio page in Notion → Share → Invite → select "Tanulytics"
-  5. Do the same for your Mindset Stack page
+  5. Do the same for the Mindset Stack page and Daily Review database
 """
 
 import os
@@ -161,8 +170,6 @@ def _build_portfolio_callout(summary: dict, positions: list, balances: list) -> 
     failed     = ", ".join(summary.get("brokers_failed", [])).upper() or "None"
     synced_at  = summary.get("synced_at", "")[:19].replace("T", " ")
 
-    pnl_color = "green" if (daily_pnl and daily_pnl >= 0) else "red"
-
     lines = [
         (f"📊 Tanulytics Daily Summary — {today}", True, "default"),
         "",
@@ -197,7 +204,8 @@ def _build_portfolio_callout(summary: dict, positions: list, balances: list) -> 
 
 def _build_market_context(summary: dict) -> list:
     """
-    Build paragraph blocks for the Mindset Stack morning check-in.
+    Build paragraph blocks for the Daily Review morning check-in.
+    One concise line so it reads quickly at 07:00.
     """
     daily_pnl  = summary.get("total_daily_pnl")
     unreal_pnl = summary.get("total_unrealised_pnl")
@@ -233,15 +241,30 @@ def _push_to_portfolio(notion, summary: dict, positions: list, balances: list):
         print(f"  ⚠️  Portfolio page update failed: {e}")
 
 
-def _push_to_mindset_stack(notion, summary: dict):
+def _push_to_daily_review(notion, summary: dict):
     """
-    Find today's Daily Review entry in the Mindset Stack and append the
-    market context. Creates a new page if none exists for today.
-    """
-    print("  Pushing to Mindset Stack...")
-    today = _today_str()
+    Find today's Daily Review entry and append the market context.
 
-    # Search for today's Daily Review entry
+    Strategy:
+      1. Query DAILY_REVIEW_DB_ID for a page whose title contains today's date.
+      2. If found → append Market Context blocks.
+      3. If not found → create a new Daily Review page for today,
+         then append Market Context blocks.
+
+    Never writes to the Mindset Stack root — that page is for habits,
+    not market data.
+    """
+    print("  Pushing to Daily Review...")
+    today     = _today_str()
+    today_fmt = _today_display()
+
+    if not DAILY_REVIEW_DB_ID or DAILY_REVIEW_DB_ID.startswith("your_"):
+        print("  ⚠️  NOTION_DAILY_REVIEW_DB_ID not set — skipping Daily Review push.")
+        return
+
+    market_blocks = _build_market_context(summary)
+
+    # ── 1. Search for today's entry ───────────────────────────────────────────
     try:
         results = notion.databases.query(
             database_id=DAILY_REVIEW_DB_ID,
@@ -252,34 +275,33 @@ def _push_to_mindset_stack(notion, summary: dict):
         ).get("results", [])
     except Exception as e:
         print(f"  ⚠️  Could not query Daily Review DB: {e}")
-        results = []
+        return
 
-    market_blocks = _build_market_context(summary)
-
+    # ── 2a. Entry exists → append ─────────────────────────────────────────────
     if results:
-        # Append to the existing daily entry
         page_id = results[0]["id"]
         try:
             notion.blocks.children.append(page_id, children=market_blocks)
-            print(f"  ✅ Added market context to today's Daily Review ({page_id[:8]}…)")
+            print(f"  ✅ Market context added to Daily Review ({today})")
         except Exception as e:
             print(f"  ⚠️  Could not append to Daily Review entry: {e}")
-    else:
-        # No entry for today — append the context directly to Mindset Stack
-        print(f"  ℹ️  No Daily Review entry found for {today}. "
-              f"Appending context to Mindset Stack root.")
-        try:
-            notion.blocks.children.append(
-                MINDSET_STACK_ID,
-                children=[
-                    _divider(),
-                    _paragraph(f"📅 {_today_display()}", bold=True),
-                    *market_blocks,
-                ],
-            )
-            print("  ✅ Mindset Stack root updated.")
-        except Exception as e:
-            print(f"  ⚠️  Could not update Mindset Stack: {e}")
+        return
+
+    # ── 2b. No entry yet → create one ────────────────────────────────────────
+    print(f"  ℹ️  No Daily Review entry found for {today} — creating one.")
+    try:
+        new_page = notion.pages.create(
+            parent={"database_id": DAILY_REVIEW_DB_ID},
+            properties={
+                "title": {
+                    "title": [{"type": "text", "text": {"content": today_fmt}}]
+                }
+            },
+            children=market_blocks,
+        )
+        print(f"  ✅ Created Daily Review entry for {today} with market context.")
+    except Exception as e:
+        print(f"  ⚠️  Could not create Daily Review entry: {e}")
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────
@@ -313,6 +335,6 @@ def push_summary(combined_data: dict) -> None:
     balances  = combined_data.get("balances", [])
 
     _push_to_portfolio(notion, summary, positions, balances)
-    _push_to_mindset_stack(notion, summary)
+    _push_to_daily_review(notion, summary)
 
     print("  ✅ Notion summary push complete.")

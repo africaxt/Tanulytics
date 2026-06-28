@@ -25,3 +25,23 @@ type: log
 - Pages updated: `entities/strategies/Algorithmic`, `concepts/PipelineArchitecture`
 - `wiki/index.md` updated — systems section added, all 6 new concepts listed, source recorded
 - Key finding: Tanulytics pipeline sits downstream of LearnAI → XeQT; the pipeline extracts state, not drives execution
+
+## [2026-06-28] notion-sync | Sourced live Notion context; implemented system-of-record split
+
+**Notion pages read:**
+- Portfolio page (a0124ec5): Rich fund dashboard — strategy allocation, products/services, personal philosophy. No pipeline output present yet.
+- Mindset Stack (35ec9f23): 13 habits across Body/Mind/Capital/Enterprise. Morning check-in with Claude. Habit Log, Golf Score Log, Weekly Reviews DBs.
+- Daily Review DB (2c2c9f23): Confirmed live in Portfolio page sidebar.
+
+**Changes made:**
+- `config/.env` — created with rotated FXCM secret + real Notion IDs
+- `scripts/notion_summary.py` — removed Mindset Stack root fallback; Daily Review push now creates entry if none exists
+- `scripts/obsidian_write.py` — added YAML frontmatter (net_liq, daily_pnl, unrealised_pnl, positions, trades_today, brokers) for Dataview queries; frontmatter updated on each repeat run
+- `CLAUDE.md` — added System of Record table defining each layer's authoritative role
+
+**System of record:**
+- Airtable = source of truth (structured, queryable)
+- Notion Portfolio = external reporting callout
+- Notion Daily Review = morning check-in market context (1 line)
+- Obsidian journal = private metrics (YAML) + reflection sections
+- Obsidian wiki = knowledge accumulation

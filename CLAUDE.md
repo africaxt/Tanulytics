@@ -8,6 +8,25 @@ Full reference for the Tanulytics trading operating system. For daily workflow a
 
 ---
 
+## System of Record
+
+Each tool in the Tanulytics OS has a single clearly-defined role. Avoid duplicating data across layers; use each tool for its authoritative purpose.
+
+| Layer | Owns | Do NOT use for |
+|---|---|---|
+| **Airtable** | Full structured data — positions, trades, balances (deduplicated, queryable) | Narrative, reflections, analysis |
+| **Notion Portfolio page** | Daily P&L callout (external/reporting layer). Investor-presentable snapshot. | Personal journal, private reflections |
+| **Notion Daily Review DB** | One-line Market Context for morning Claude check-in | Full trade logs, position tables |
+| **Obsidian journal/** | Headline metrics (YAML frontmatter) + personal reflections (Market Context, Trade Rationale, Observations, Tomorrow, Mindset) | Investor reporting |
+| **Obsidian wiki/** | Knowledge accumulation — broker pages, strategy pages, concept pages, trade theses | Live pipeline data |
+
+Pipeline push order per run:
+```
+run_all.py → airtable_push.py → notion_summary.py → obsidian_write.py
+              (source of truth)   (Portfolio + DailyReview)  (journal + wiki)
+```
+
+
 ## What Tanulytics is
 
 Tanulytics is a closed-loop portfolio aggregation and reporting system sitting at the Capital pillar of the AMB Mindset Stack. It pulls live position, balance, and trade data from 4 brokers, normalises everything into a common schema, pushes it to Airtable as the central data layer, and surfaces a daily summary on the Notion Portfolio page and Mindset Stack morning check-in.

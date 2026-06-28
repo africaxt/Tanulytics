@@ -11,6 +11,18 @@ other sections are preserved.
 Called by run_all.py after notion_summary.  Also importable standalone:
     from obsidian_write import write_journal
     write_journal(combined_data)
+
+Obsidian / Dataview note
+────────────────────────
+Each note is created with YAML frontmatter so Dataview can query across
+journal entries.  Example query:
+
+    ```dataview
+    TABLE net_liq, daily_pnl, positions
+    FROM "journal"
+    SORT date DESC
+    LIMIT 30
+    ```
 """
 
 from __future__ import annotations
@@ -36,6 +48,16 @@ def _fmt(value, prefix: str = "", suffix: str = "", decimals: int = 2) -> str:
         return f"{prefix}{float(value):,.{decimals}f}{suffix}"
     except (TypeError, ValueError):
         return str(value)
+
+
+def _fmt_yaml(value) -> str:
+    """Format a numeric value for YAML frontmatter (null if missing)."""
+    if value is None:
+        return "null"
+    try:
+        return f"{float(value):.2f}"
+    except (TypeError, ValueError):
+        return "null"
 
 
 def _broker_table(balances: list[dict]) -> str:
@@ -105,6 +127,7 @@ def _build_summary_block(data: dict) -> str:
 
     block = f"""## Pipeline Summary
 > Last synced: {synced_str} · Brokers: {", ".join(summary.get("brokers_synced", []) or ["—"])}
+> Full data: Airtable (positions/trades/balances) · Notion Portfolio (daily snapshot)
 
 | Metric | Value |
 |---|---|
@@ -127,13 +150,29 @@ def _build_summary_block(data: dict) -> str:
     return block
 
 
-# ── Note writer ───────────────────────────────────────────────────────────────
-
-_SUMMARY_RE = re.compile(
-    r"## Pipeline Summary.*?(?=\n## |\Z)", re.DOTALL
-)
+# ── Note template ────────────────────────────────────────────────────────────
+# YAML frontmatter enables Dataview queries across journal entries:
+#
+#   ```dataview
+#   TABLE net_liq, daily_pnl, positions
+#   FROM "journal"
+#   SORT date DESC
+#   LIMIT 30
+#   ```
 
 _NOTE_TEMPLATE = """\
+---
+type: journal
+date: {date}
+net_liq: {net_liq}
+daily_pnl: {daily_pnl}
+unrealised_pnl: {unrealised_pnl}
+positions: {positions}
+trades_today: {trades_today}
+brokers: [{brokers}]
+tags: [journal, trading, {year}]
+---
+
 # {date} — Daily Trading Journal
 
 {summary_block}
@@ -168,37 +207,86 @@ _NOTE_TEMPLATE = """\
 
 *Brief reflection — discipline, focus, emotional state during session.*
 
----
-tags: journal trading {year}
 """
 
+# Regex matches the YAML frontmatter block (--- ... ---)
+_FRONTMATTER_RE = re.compile(r"^---\n.*?\n---\n", re.DOTALL)
+
+# Regex matches the Pipeline Summary section
+_SUMMARY_RE = re.compile(
+    r"## Pipeline Summary.*?(?=\n## |\Z)", re.DOTALL
+)
+
+
+# ── Note writer ───────────────────────────────────────────────────────────────
 
 def write_journal(data: dict, target_date: date | None = None) -> Path:
     """
     Write or update the journal note for *target_date* (defaults to today).
     Returns the path of the note written.
+
+    On first run: creates a full note from template with YAML frontmatter.
+    On repeat runs: updates frontmatter metrics AND Pipeline Summary block,
+    preserving all manual sections.
     """
     target_date = target_date or date.today()
     date_str    = target_date.strftime("%Y-%m-%d")
     note_path   = JOURNAL_DIR / f"{date_str}.md"
+
+    summary       = data.get("summary", {})
     summary_block = _build_summary_block(data)
 
+    # Build frontmatter values
+    net_liq       = _fmt_yaml(summary.get("total_net_liq"))
+    daily_pnl     = _fmt_yaml(summary.get("total_daily_pnl"))
+    unrealised_pnl = _fmt_yaml(summary.get("total_unrealised_pnl"))
+    positions     = summary.get("total_positions", 0) or 0
+    trades_today  = summary.get("total_trades", 0) or 0
+    brokers_raw   = summary.get("brokers_synced", []) or []
+    brokers       = ", ".join(f'"{b}"' for b in brokers_raw)
+
+    new_frontmatter = (
+        f"---\n"
+        f"type: journal\n"
+        f"date: {date_str}\n"
+        f"net_liq: {net_liq}\n"
+        f"daily_pnl: {daily_pnl}\n"
+        f"unrealised_pnl: {unrealised_pnl}\n"
+        f"positions: {positions}\n"
+        f"trades_today: {trades_today}\n"
+        f"brokers: [{brokers}]\n"
+        f"tags: [journal, trading, {target_date.year}]\n"
+        f"---\n"
+    )
+
     if note_path.exists():
-        # Update existing note — replace only the Pipeline Summary section
         existing = note_path.read_text(encoding="utf-8")
+
+        # Update frontmatter
+        if _FRONTMATTER_RE.match(existing):
+            existing = _FRONTMATTER_RE.sub(new_frontmatter, existing, count=1)
+        else:
+            existing = new_frontmatter + "\n" + existing
+
+        # Update Pipeline Summary section
         if _SUMMARY_RE.search(existing):
             updated = _SUMMARY_RE.sub(summary_block, existing, count=1)
         else:
-            # No section yet — prepend after the H1 title
             lines = existing.split("\n", 2)
             updated = lines[0] + "\n\n" + summary_block + "\n\n" + (lines[2] if len(lines) > 2 else "")
+
         note_path.write_text(updated, encoding="utf-8")
     else:
-        # Create fresh note from template
         content = _NOTE_TEMPLATE.format(
             date=date_str,
             year=target_date.year,
             summary_block=summary_block,
+            net_liq=net_liq,
+            daily_pnl=daily_pnl,
+            unrealised_pnl=unrealised_pnl,
+            positions=positions,
+            trades_today=trades_today,
+            brokers=brokers,
         )
         note_path.write_text(content, encoding="utf-8")
 

@@ -52,6 +52,7 @@ updated: 2026-06-28
 | [[PortfolioConstructionModel]] | Synthesises alpha + risk + TCM into Target Portfolio — LearnAI Portfolio Optimizer |
 | [[DecisionEngine]] | Human-computer UI checkpoint between signal generation and execution |
 | [[GCPInfrastructure]] | Google Cloud Platform — hosts LearnAI and XeQT |
+| [[DataviewQueries]] | Obsidian Dataview queries for journal YAML frontmatter |
 
 ## Comparisons
 
