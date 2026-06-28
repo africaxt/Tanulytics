@@ -94,3 +94,15 @@ All trading strategies follow AfricaX Trading risk protocols:
 ## Institutional
 
 Managed funds and institutional strategies segregated in `/institutional` with separate compliance tracking under MBZ Global Management FZCO (ADGM/UAE).
+
+---
+
+## Wiki (LLM Knowledge Base)
+
+This vault implements the [Karpathy LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). Start here:
+
+- [[index]] — full catalog of all wiki pages
+- [[PipelineArchitecture]] — how the Tanulytics data pipeline works
+- [[LearnAI]] — ML AI subsystem (forecasting + portfolio optimisation)
+- [[XeQT]] — trade execution system
+- [[PortfolioOverview]] — cross-broker portfolio synthesis

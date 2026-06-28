@@ -2,6 +2,10 @@
 
 Full reference for the Tanulytics trading operating system. For daily workflow and quick commands, see `README.md`.
 
+> **Wiki:** [[index]] · [[LearnAI]] · [[XeQT]] · [[PipelineArchitecture]] · [[PortfolioOverview]] · [[RiskFramework]]
+
+
+
 ---
 
 ## What Tanulytics is
@@ -442,3 +446,118 @@ The Tanulytics folder is also an Obsidian vault. Use the following folders as li
 ### Pipeline → Obsidian flow
 
 Each `run_all.py` run writes or updates `journal/YYYY-MM-DD.md` via `scripts/obsidian_write.py`. The Pipeline Summary section is auto-replaced on each run; all other sections (Market Context, Trade Rationale, Observations, Tomorrow, Mindset) are manual and preserved between runs.
+
+---
+
+## LLM Wiki — Operations
+
+This vault implements [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). Three layers:
+
+- **`raw/`** — immutable source documents (articles, papers, reports). Never modify.
+- **`wiki/`** — LLM-generated pages. Claude owns this layer entirely.
+- **`CLAUDE.md`** (this file) — the schema. Defines structure, conventions, and workflows.
+
+---
+
+### Wiki structure conventions
+
+Every wiki page must have YAML frontmatter with at minimum:
+```yaml
+---
+type: entity | concept | comparison | synthesis | summary
+name: <name>
+updated: YYYY-MM-DD
+tags: []
+---
+```
+
+Use `[[wikilinks]]` for all cross-references. Never use bare URLs for internal links.
+
+Directory layout:
+```
+wiki/
+  index.md              ← catalog of all pages (update on every ingest)
+  log.md                ← append-only operation log
+  entities/
+    brokers/            ← one page per broker
+    strategies/         ← one page per strategy
+  concepts/             ← market concepts, risk framework, architecture
+  comparisons/          ← side-by-side comparisons across entities
+  synthesis/            ← rolling cross-broker portfolio synthesis
+raw/
+  articles/             ← web articles (Obsidian Web Clipper output)
+  papers/               ← research papers
+  reports/              ← earnings, macro, broker research
+  assets/               ← locally downloaded images
+```
+
+---
+
+### Operation: Ingest
+
+Triggered when user says: "Ingest [filename]" or "Process [source]"
+
+1. Read the source file from `raw/`
+2. Discuss key takeaways with user if interactive; summarise if batch
+3. Write a summary page in the appropriate `wiki/` subdirectory using `templates/wiki-page.md`
+4. Update `wiki/index.md` — add the new page to the correct section
+5. Update all relevant entity and concept pages that the source touches (add to their Sources table, revise facts if needed, note contradictions)
+6. Append to `wiki/log.md`: `## [YYYY-MM-DD] ingest | <source title>`
+7. Update `raw/README.md` sources table if applicable
+
+A single source may touch 5–15 wiki pages. Touch all of them.
+
+---
+
+### Operation: Query
+
+Triggered when user asks a question about trading activity, markets, or portfolio.
+
+1. Read `wiki/index.md` to identify relevant pages
+2. Read those pages in full
+3. Also check `journal/YYYY-MM-DD.md` (today's or most recent) for live pipeline data
+4. Synthesise an answer with `[[wikilink]]` citations
+5. If the answer is non-trivial and reusable, offer to file it back as a new wiki page or update an existing one
+6. Append to `wiki/log.md`: `## [YYYY-MM-DD] query | <question summary>`
+
+---
+
+### Operation: Lint
+
+Triggered when user says: "Lint the wiki" or "Health check"
+
+Check for and report:
+- **Broken wikilinks** — links that don't resolve to an existing file
+- **Orphan pages** — pages with no inbound links
+- **Stale claims** — facts that newer sources have superseded (check source dates)
+- **Missing pages** — concepts mentioned in multiple places but lacking their own page
+- **Missing cross-references** — pages that should link to each other but don't
+- **Empty sections** — pages with placeholder text still in them
+- **Index gaps** — pages in `wiki/` not listed in `index.md`
+- **Log gaps** — operations that happened but weren't logged
+
+After reporting, offer to fix each issue. Append to `wiki/log.md`: `## [YYYY-MM-DD] lint | <issues found>`
+
+---
+
+### Frontmatter conventions
+
+| Field | Values |
+|---|---|
+| `type` | `entity`, `concept`, `comparison`, `synthesis`, `summary`, `journal`, `thesis`, `watchlist` |
+| `category` | `broker`, `strategy`, `market`, `macro`, `risk` |
+| `status` | `open`, `closed`, `monitoring`, `draft` |
+| `updated` | `YYYY-MM-DD` — update on every edit |
+| `source_count` | integer — increment when a new source updates this page |
+| `tags` | array — use consistent tags for Dataview queries |
+
+---
+
+### Page quality standard
+
+A good wiki page:
+- Opens with a 1–2 sentence summary (scannable without reading the full page)
+- Has outbound `[[wikilinks]]` to every related entity and concept it mentions
+- Has a Sources table listing every raw document that informed it
+- Has an "Open questions" section flagging what's still uncertain
+- Has accurate `updated` frontmatter

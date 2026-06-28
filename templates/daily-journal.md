@@ -1,3 +1,14 @@
+---
+type: journal
+date: {{date}}
+tags: [journal, trading]
+brokers_synced: []
+net_liq:
+daily_pnl:
+unrealised_pnl:
+open_positions:
+---
+
 # {{date}} — Daily Trading Journal
 
 ## Pipeline Summary
@@ -40,6 +51,3 @@
 ## Mindset
 
 *Brief reflection — discipline, focus, emotional state during session.*
-
----
-tags: journal trading {{year}}
