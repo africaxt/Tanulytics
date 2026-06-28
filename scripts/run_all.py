@@ -207,6 +207,15 @@ def main():
     except Exception as e:
         log.error(f"  ❌ Notion push failed: {e}")
 
+    # ── Step 5: Write Obsidian journal note ──────────────────
+    log.info("\n── Writing Obsidian journal note ────────────────────")
+    try:
+        from obsidian_write import write_journal
+        note_path = write_journal(combined)
+        log.info(f"  ✅ Obsidian note: {note_path}")
+    except Exception as e:
+        log.error(f"  ❌ Obsidian write failed: {e}")
+
     # ── Done ───────────────────────────────────────────────────
     duration = (datetime.now() - run_time).seconds
     log.info(f"\n{'=' * 60}")

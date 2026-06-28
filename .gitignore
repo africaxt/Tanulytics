@@ -98,3 +98,18 @@ Thumbs.db
 
 # Branding assets
 branding/
+
+# Obsidian workspace state (personal, not shareable)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Obsidian journal & personal notes (private trading data)
+journal/
+inbox/
+notes/
+
+# Schwab token cache
+config/.schwab_tokens.json
+
+# Robinhood session cache
+*.pickle

@@ -35,12 +35,12 @@ try:
 except ImportError:
     pass
 
-NOTION_API_KEY = os.getenv("NOTION_API_KEY", "")
+NOTION_API_KEY      = os.getenv("NOTION_API_KEY", "")
 
-# Notion page / database IDs
-PORTFOLIO_PAGE_ID   = "a0124ec5-d4f1-48c0-ad65-e145efc8b519"
-MINDSET_STACK_ID    = "35ec9f23-0499-81f8-b62c-c70de010364c"
-DAILY_REVIEW_DB_ID  = "2c2c9f23-0499-8172-aced-000b3f33f85a"   # Daily Review collection
+# Notion page / database IDs — set these in config/.env
+PORTFOLIO_PAGE_ID   = os.getenv("NOTION_PORTFOLIO_PAGE_ID", "")
+MINDSET_STACK_ID    = os.getenv("NOTION_MINDSET_STACK_ID", "")
+DAILY_REVIEW_DB_ID  = os.getenv("NOTION_DAILY_REVIEW_DB_ID", "")
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────

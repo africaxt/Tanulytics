@@ -413,3 +413,32 @@ pip install ib_async flask schwabdev robin_stocks pyotp pyairtable notion-client
 - **Never commit `config/.schwab_tokens.json`** — it grants 7-day trading API access.
 - FXCM balance and unrealised P&L are not available from webhooks alone — reconcile weekly via FXCM CSV statement import.
 - IBKR historical trades beyond the current session require a Flex Query CSV export — load via `aggregator.py` in a future enrichment step.
+
+---
+
+## Obsidian Vault & AI Context
+
+The Tanulytics folder is also an Obsidian vault. Use the following folders as live context when answering questions about trading activity, performance, or strategy:
+
+### Vault structure
+
+| Folder | Contents |
+|---|---|
+| `journal/` | Daily trading journal notes (`YYYY-MM-DD.md`). Auto-written by `obsidian_write.py` on each pipeline run. Contains pipeline summary (P&L, positions, broker snapshots) + manual reflections. |
+| `notes/theses/` | Trade thesis notes — per-symbol conviction, entry/exit plan, outcome. |
+| `notes/watchlists/` | Active watchlists by theme or strategy. |
+| `notes/research/` | Market research, macro notes, deeper analysis. |
+| `inbox/` | Quick-capture notes pending filing. Check here for recent unprocessed thoughts. |
+| `templates/` | Note templates (`daily-journal.md`, `trade-thesis.md`, `watchlist.md`). |
+
+### How to use vault context
+
+- **Before answering questions about recent performance or trades**, read the latest journal note at `journal/YYYY-MM-DD.md` (use today's date or the most recent file).
+- **Before answering questions about a specific position or symbol**, check `notes/theses/` for a matching thesis note.
+- **When the user mentions a watchlist or market theme**, check `notes/watchlists/`.
+- **For macro or research questions**, check `notes/research/`.
+- Always prefer fresh vault data over assumptions from training when discussing Tanulytics-specific activity.
+
+### Pipeline → Obsidian flow
+
+Each `run_all.py` run writes or updates `journal/YYYY-MM-DD.md` via `scripts/obsidian_write.py`. The Pipeline Summary section is auto-replaced on each run; all other sections (Market Context, Trade Rationale, Observations, Tomorrow, Mindset) are manual and preserved between runs.
