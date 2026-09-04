@@ -45,3 +45,23 @@ type: log
 - Notion Daily Review = morning check-in market context (1 line)
 - Obsidian journal = private metrics (YAML) + reflection sections
 - Obsidian wiki = knowledge accumulation
+
+## [2026-07-15] synthesis | AfricaX × Highland VC Trading Plan v1.0
+
+- Source: `uploads/HBC - IP & CT Overview_compressed.pdf` (HBC IPS + group treasury statements)
+- Pages created: `synthesis/TradingPlan`, `entities/watchlists/HighlandVC`, `entities/watchlists/AfricaXTrading`
+- Also delivered: `synthesis/TradingPlan.docx` (formatted Word version)
+- `wiki/index.md` updated — new "Entities — Watchlists" section; TradingPlan added to Synthesis; HBC source recorded
+- Two-book model: Highland VC (senior IPS treasury) vs AfricaX (junior, capped hedge/basis + ring-fenced proprietary) — squares Tanulytics' proprietary mandate with the IPS's capital-preservation-first priority
+- Key finding: 5 of 7 crops in the AfricaX basket (potato, sorghum, beans, cashew, + post-Jun-2026 potato delisting) have no clean listed hedge — the "missing benchmark" gap Ai4Ag/MerchantX are positioned to close under AfCFTA
+
+## [2026-07-15] reconcile | TradingPlan v1.1 aligned to Enterprise IP boundaries
+
+- Cross-checked against the Dbuntu Ai (Enterprise) entity register
+- Removed the "ring-fenced proprietary sleeve" — it violated AfricaX Trading's non-negotiable mandate (no speculation / no brokerage / no custody)
+- Re-attributed securities activity to the HBC treasury layer, advised by Dbuntu LABS; AfricaX designs hedges only; MerchantX/BDL do physical execution; Ai4Ag is intelligence-only
+- Added an IP-boundary table (§1) and dropped matrix row 7; §4 is now purely hedging tied to real physical exposure
+- Aligned wikilinks to canonical names: [[HBC]], [[Dbuntu LABS]], [[AfricaX Trading]], [[MerchantX]], [[Ai4Ag]], [[Tanulytics]]
+- Created Notion-canonical pointer stubs under `wiki/entities/` (HBC, Dbuntu LABS, AfricaX Trading, MerchantX, Ai4Ag, Tanulytics) so links resolve locally while Notion stays the single source of truth
+- Enterprise vault: added `wiki/entities/Tanulytics.md`, updated its index (14→15) and log
+

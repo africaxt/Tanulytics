@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-06-28
+updated: 2026-07-15
 ---
 
 # Wiki Index
@@ -40,6 +40,26 @@ updated: 2026-06-28
 | [[GlobalMacro]] | Macro positioning across equities and bonds via Schwab |
 | [[ValueInvesting]] | Long-horizon US equity + options via Robinhood |
 
+## Entities — Watchlists
+
+| Page | Summary |
+|---|---|
+| [[HighlandVC]] | Treasury/IPS reserve watchlist — DFM equities/REITs, fixed income, cash, crypto sleeve, hedges |
+| [[AfricaXTrading]] | Commodity-linked watchlist mirroring the physical crop basket — hedge/basis proxies per crop |
+
+## Entities — Group register (Notion-canonical pointers)
+
+> Source of truth lives in Notion (Dbuntu Ai Enterprise). These are thin pointer stubs so `[[links]]` resolve in this vault; edit content in Notion.
+
+| Page | Canonical | Summary |
+|---|---|---|
+| [[HBC]] | Notion | Group-CFO layer — treasury, fixed income, custody, advisory reporting |
+| [[Dbuntu LABS]] | Notion | HQ / IP layer; KIFC-target Investment Advisor |
+| [[AfricaX Trading]] | Notion | Risk/hedging model IP — no speculation/brokerage/custody |
+| [[MerchantX]] | Notion | Physical commodity execution methodology (BDL) |
+| [[Ai4Ag]] | Notion | Farm/market intelligence platform (intelligence only) |
+| [[Tanulytics]] | Notion | Proprietary securities aggregation & signal system (this vault) |
+
 ## Concepts
 
 | Page | Summary |
@@ -63,12 +83,14 @@ _None yet. Add comparison pages here as they are created._
 | Page | Summary |
 |---|---|
 | [[PortfolioOverview]] | Rolling synthesis of cross-broker portfolio state and performance |
+| [[TradingPlan]] | AfricaX × Highland VC two-book operating playbook (v1.0) — treasury + commodity books under the HBC IPS |
 
 ## Sources (raw/)
 
 | File | Type | Ingested | Summary |
 |---|---|---|---|
 | [[TraderChit-by-Tanulytics-v2.pdf]] | report | 2026-06-28 | TraderChit architecture: LearnAI, XeQT, UCL trading components, GCP infrastructure, operational timeline |
+| [[HBC - IP & CT Overview_compressed.pdf]] | mandate | 2026-07-15 | HBC IPS: four objectives, permitted assets, treasury statements (MBZ Global Management FZCO / Emirates NBD; XENO) |
 
 ---
 tags: index meta

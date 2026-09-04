@@ -75,6 +75,10 @@ coverage.xml
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Google Drive sync-conflict duplicates (e.g. "file (1).ext")
+* ([0-9])*
 
 # Large binaries & documents
 *.pdf
