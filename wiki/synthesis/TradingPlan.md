@@ -2,24 +2,25 @@
 type: synthesis
 name: AfricaX × Highland VC — Trading Plan
 category: strategy
-status: draft
-updated: 2026-07-15
-version: 1.1
+status: active
+updated: 2026-09-10
+version: 1.2
 source_count: 2
 sources: ["HBC - IP & CT Overview_compressed.pdf", "Dbuntu Ai (Enterprise) wiki/entities"]
 tags: [trading-plan, ips, treasury, commodities, hedging, africax, highland-vc, tanulytics]
 ---
 
-# AfricaX × Highland VC — Trading Plan (v1.1)
+# AfricaX × Highland VC — Trading Plan (v1.2)
 
-> **One-line summary:** A two-book operating playbook. **Highland VC** is HBC's capital-preservation-first treasury book. The **AfricaX-linked hedging overlay** uses listed securities to protect the margin the group already carries in the physical crop trade — hedges *designed* by the [[AfricaX Trading]] risk model, *executed* in group-entity brokerage accounts, *advised* by [[Dbuntu LABS]], and *observed/reported* by [[Tanulytics]]. No speculation, no proprietary book.
+> **One-line summary:** A two-book operating playbook set inside a clean three-entity division of labour — **[[Tanulytics]] = securities**, **[[MerchantX]] = physical execution**, **[[AfricaX Trading]] = facilitation & hedging**. **Highland VC** is HBC's capital-preservation-first treasury book; the **AfricaX-linked hedging overlay** uses listed securities to protect the margin the group carries in the physical crop trade — hedges *designed* by AfricaX, *executed* in group-entity/personal brokerage accounts, *advised* by [[Dbuntu LABS]], *observed/reported* by Tanulytics. No speculation, no proprietary book.
 
 **Advisor:** [[Dbuntu LABS]] (investment advisory — [[wiki/concepts/investment-advisory|KIFC]] target)
-**System:** [[Tanulytics]] (read-only aggregation & signal system)
+**System:** [[Tanulytics]] (read-only securities aggregation & signal system)
 **Governing mandate:** HBC Investment Policy Statement (IPS) for MBZ Group Africa
-**Effective:** 2026-07-15 · **Review cycle:** Quarterly (next 2026-10-15)
+**Effective:** 2026-09-10 · **Review cycle:** Quarterly (next 2026-12-10)
 
-> **v1.1 change note:** Reconciled to the canonical entity/IP boundaries in the Dbuntu Ai (Enterprise) vault. Removed the "ring-fenced proprietary sleeve" (violated [[AfricaX Trading]]'s no-speculation mandate). Securities activity re-attributed to the HBC treasury layer, advised by Dbuntu LABS.
+> **v1.2 change note:** Locked the three-entity division — Tanulytics (securities), MerchantX (physical), AfricaX Trading (facilitation & hedging). Airtable bases reorganised to match (see §2 → System of record): the **Tanulytics – Trade Log** base is the securities system of record (Trades · Securities · Markets · Brokers · Partners · Transactions); MerchantX holds all physical trades; capital contributions live in Tanulytics Partners/Transactions.
+> **v1.1 change note:** Reconciled to the canonical entity/IP boundaries in the Dbuntu Ai (Enterprise) vault. Removed the "ring-fenced proprietary sleeve"; securities activity re-attributed to the HBC treasury layer, advised by Dbuntu LABS.
 
 ---
 
@@ -44,7 +45,7 @@ Permitted assets: cash & equivalents, listed equities & ETFs, fixed income, cryp
 |---|---|---|
 | [[Ai4Ag]] | Farm/market **intelligence** — forecasts, climate & pricing signals | Trade, execute, or custody |
 | [[MerchantX]] | **Physical** commodity trade execution methodology (operated by Bunyonyi Distributors / BDL under licence) | Speculate; use financial instruments |
-| [[AfricaX Trading]] | **Risk-mitigation / hedging model IP** | Speculate; broker; custody |
+| [[AfricaX Trading]] | **Facilitation & hedging** — facilitates physical commodity deals (e.g. sunflower, cashew) + risk-mitigation/hedging model IP | Speculate; take custody |
 | [[HBC]] | Corporate **treasury, fixed income, custody**, advisory reporting | — |
 | [[Dbuntu LABS]] | **Investment advisory** (KIFC-regulated target) | Custody or execute (advisory only) |
 | [[Tanulytics]] | Securities **aggregation & signals** | Place orders (read-only) |
@@ -59,12 +60,23 @@ Permitted assets: cash & equivalents, listed equities & ETFs, fixed income, cryp
 |---|---|---|
 | [[HBC]] | Mandate owner + treasury/custody | Sets IPS limits, drawdown thresholds, rebalancing; holds the capital |
 | [[Dbuntu LABS]] | Investment Advisor | Recommends allocations & hedges; advisory only — no custody, no execution |
-| [[AfricaX Trading]] | Risk model | Supplies the hedge design/logic — no brokerage, no custody, no speculation |
+| [[AfricaX Trading]] | Facilitation & hedging | Facilitates physical deals (sunflower, cashew) and supplies hedge design/logic — no speculation, no custody |
 | [[MerchantX]] / BDL | Physical execution | Times & executes the physical crop trades; bears execution risk |
-| [[Tanulytics]] | System | Signals, backtests, read-only aggregation & reporting |
+| [[Tanulytics]] | Securities system | Signals, backtests, read-only aggregation & reporting |
 | Group entities (MBZ Global Management FZCO, others) | Brokerage & custody | Hold accounts in their own names; place all orders at regulated institutions (IPS §5) |
 
 **Separation of duties:** Advisor advises, treasury holds, the model designs, the system reports, group entities execute. No Tanulytics script places orders ([[PipelineArchitecture]]).
+
+### System of record (Airtable)
+
+| Base | Owns | Key tables |
+|---|---|---|
+| **Tanulytics – Trade Log** | Securities & personal capital | Trades · Securities · Markets (types) · Brokers · Partners · Transactions |
+| **MerchantX ™** | Physical commodity trades | Portfolio · Catalog · Merchants · Providers · Orderbook · Cashbook |
+| **AfricaX Trading** | Facilitation & hedging | Deal facilitation + hedge design |
+| **HBC ™** | Treasury / IPS reserves | Treasury holdings, fixed income |
+
+Personal discretionary securities (e.g. the FXCM XAU/XAG metals longs) live in **Tanulytics – Trade Log → Trades**, linked to the Securities master and its Market type; they are not group-book positions.
 
 ---
 

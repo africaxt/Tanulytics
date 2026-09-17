@@ -65,3 +65,12 @@ type: log
 - Created Notion-canonical pointer stubs under `wiki/entities/` (HBC, Dbuntu LABS, AfricaX Trading, MerchantX, Ai4Ag, Tanulytics) so links resolve locally while Notion stays the single source of truth
 - Enterprise vault: added `wiki/entities/Tanulytics.md`, updated its index (14→15) and log
 
+## [2026-09-10] reorg | Airtable bases + TradingPlan v1.2 — three-entity model locked
+
+- **Model locked:** Tanulytics = securities · MerchantX = physical · AfricaX Trading = facilitation & hedging · HBC = treasury.
+- **Airtable `Tanulytics – Trade Log`** (renamed from "Alvin B. Mbabazi - Trade Log") is now the securities system of record: `Trades` augmented with securities columns (Broker, Asset Class, Direction, Entry/TP/SL/Exit USD, P&L USD, Strategy, Broker Position ID, Currency, Fees, Month, Year); `Securities` master (17 tickers incl. XAU/XAG) linked to `Markets` (market types); `Logistics Partners` → renamed `Brokers` (FXCM/IBKR/Schwab/Robinhood); `Partners` + `Transactions` hold the capital ledger.
+- **Migrations:** physical trades + reference data (markets/partners/logistics) → MerchantX; MerchantX securities (Trades + Securities master) → Tanulytics; MerchantX `Investment` (capital contributions) → Tanulytics `Partners`/`Transactions` (deduped, 3 duplicate deposits dropped).
+- **Logged the live FXCM trades:** XAU/USD (ID 75013713) & XAG/USD (ID 75013742) in `Trades`, linked to Securities/Brokers; rationale in `notes/theses/XAUUSD`, `notes/theses/XAGUSD`, and `journal/2026-09-10`.
+- **Docs updated:** `TradingPlan` v1.1→v1.2 (three-entity division + Airtable system-of-record); `CLAUDE.md` ecosystem-division section added; Enterprise `AGENTS.md` IP-boundary rules updated (AfricaX = facilitation & hedging; Tanulytics = securities); `wiki/entities/AfricaX Trading` stub updated.
+- **Open:** `TradingPlan.docx` still v1.1 (regenerate if a fresh Word copy is needed); vestigial physical UGX columns remain on the `Trades` table (removable on request).
+

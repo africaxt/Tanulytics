@@ -8,6 +8,19 @@ Full reference for the Tanulytics trading operating system. For daily workflow a
 
 ---
 
+## Ecosystem division (three entities — do not conflate)
+
+| Entity | Owns | Airtable base |
+|---|---|---|
+| **Tanulytics** | **Securities** — personal discretionary trades + aggregation/signals | `Tanulytics – Trade Log` (Trades · Securities · Markets · Brokers · Partners · Transactions) |
+| **MerchantX** | **Physical** commodity execution (via BDL) | `MerchantX ™` (Portfolio · Catalog · Merchants · Providers …) |
+| **AfricaX Trading** | **Facilitation & hedging** (deal facilitation + hedge model IP) | `AfricaX Trading` |
+| **HBC** | Treasury / IPS reserves | `HBC ™` |
+
+Log securities (incl. FXCM metals CFDs like XAU/XAG) in **Tanulytics – Trade Log → Trades**, linked to the Securities master; physical trades go in MerchantX. Never conflate. Full plan: [[TradingPlan]].
+
+---
+
 ## System of Record
 
 Each tool in the Tanulytics OS has a single clearly-defined role. Avoid duplicating data across layers; use each tool for its authoritative purpose.
